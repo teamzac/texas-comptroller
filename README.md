@@ -1,11 +1,12 @@
-# Very short description of the package
+# A PHP package for programatically accessing public data from the Texas Comptroller's site
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/teamzac/texas-comptroller.svg?style=flat-square)](https://packagist.org/packages/teamzac/texas-comptroller)
-[![Build Status](https://img.shields.io/travis/teamzac/texas-comptroller/master.svg?style=flat-square)](https://travis-ci.org/teamzac/texas-comptroller)
-[![Quality Score](https://img.shields.io/scrutinizer/g/teamzac/texas-comptroller.svg?style=flat-square)](https://scrutinizer-ci.com/g/teamzac/texas-comptroller)
 [![Total Downloads](https://img.shields.io/packagist/dt/teamzac/texas-comptroller.svg?style=flat-square)](https://packagist.org/packages/teamzac/texas-comptroller)
 
-This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
+This package provides a programmatic interface for accessing various pieces of public data from the Texas Comptroller's website, including:
+
+* Public sales tax payments for local governments
+* Sales taxpayer searching by taxpayer ID
 
 ## Installation
 
@@ -17,9 +18,7 @@ composer require teamzac/texas-comptroller
 
 ## Usage
 
-``` php
-// Usage description here
-```
+Coming soon
 
 ### Testing
 
@@ -43,11 +42,8 @@ If you discover any security related issues, please email chad@zactax.com instea
 
 - [Chad Janicek](https://github.com/teamzac)
 - [All Contributors](../../contributors)
+- [Laravel Package Boilerplate](https://laravelpackageboilerplate.com)
 
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-## Laravel Package Boilerplate
-
-This package was generated using the [Laravel Package Boilerplate](https://laravelpackageboilerplate.com).
