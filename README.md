@@ -8,6 +8,8 @@ This package provides a programmatic interface for accessing various pieces of p
 * Public sales tax payments for local governments
 * Sales taxpayer searching by taxpayer ID
 
+This package replaces our old [Texas Comptroller Tools](https://github.com/teamzac/texas-comptroller-tools) package.
+
 ## Installation
 
 You can install the package via composer:
