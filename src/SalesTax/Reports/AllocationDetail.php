@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use TeamZac\TexasComptroller\Support\Currency;
-use TeamZac\TexasComptroller\Support\HttpReport;
+use TeamZac\TexasComptroller\BaseReports\HttpReport;
 
 class AllocationDetail extends HttpReport
 {
@@ -31,7 +31,7 @@ class AllocationDetail extends HttpReport
     }
 
     /**
-     * 
+     * Fetch report for a county
      * 
      * @param   string $name    the query string to search for
      * @return  $this
@@ -130,13 +130,13 @@ class AllocationDetail extends HttpReport
      * Map the given text to a Carbon date object
      * 
      * @param   string $text
-     * @return  
+     * @return  Carbon
      */
     protected function mapTextToDate($text)
     {
         $text = trim(str_replace('Allocation Period:&nbsp;', '', $text));
 
-        return (new Carbon($text))->format('Y-m-d');
+        return new Carbon($text);
     }
 
     /**
@@ -167,10 +167,10 @@ class AllocationDetail extends HttpReport
     }
 
     /**
+     * Remote stupid abbreviations and other punctionation
      * 
-     * 
-     * @param   
-     * @return  
+     * @param   string $text
+     * @return  string
      */
     public function cleanComponent($text)
     {

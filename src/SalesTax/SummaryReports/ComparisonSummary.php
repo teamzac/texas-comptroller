@@ -5,7 +5,9 @@ namespace TeamZac\TexasComptroller\SalesTax\SummaryReports;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use TeamZac\TexasComptroller\Support\JsonReport;
+use TeamZac\TexasComptroller\BaseReports\JsonReport;
+use TeamZac\TexasComptroller\SalesTax\SummaryReports\SummaryPeriod;
+use TeamZac\TexasComptroller\Support\MultipleEntityReportCollection;
 
 class ComparisonSummary extends JsonReport
 {
@@ -23,7 +25,7 @@ class ComparisonSummary extends JsonReport
     /**
      * Get the report for cities
      * 
-     * @return  this
+     * @return  $this
      */
     public function forCities()
     {
@@ -37,7 +39,7 @@ class ComparisonSummary extends JsonReport
     /**
      * Get the report for counties
      * 
-     * @return  this
+     * @return  $this
      */
     public function forCounties()
     {
@@ -51,7 +53,7 @@ class ComparisonSummary extends JsonReport
     /**
      * Get the report for transit authorities
      * 
-     * @return  this
+     * @return  $this
      */
     public function forTransitAuthorities()
     {
@@ -65,7 +67,7 @@ class ComparisonSummary extends JsonReport
     /**
      * Get the report for special districts
      * 
-     * @return  
+     * @return  $this
      */
     public function forSpecialDistricts()
     {
@@ -86,20 +88,15 @@ class ComparisonSummary extends JsonReport
     {
         $reportMonth = $this->getReportMonth($json);
         
-        $entities = collect($json)->map(function($row) use ($reportMonth) {
+        return collect($json)->map(function($row) use ($reportMonth) {
             return $this->parseRow($row, $reportMonth);
-        })->sortBy('entity');
-
-        return [
-            'month' => $reportMonth,
-            'entities' => $entities
-        ];
+        })->sortBy('entity')->values();
     }
 
     /**
      * Get the month that this report represents
      * 
-     * @param   
+     * @param   mixed $json
      * @return  Carbon\Carbon
      */
     public function getReportMonth($json)
@@ -113,7 +110,7 @@ class ComparisonSummary extends JsonReport
      * Map the given text to a Carbon date object
      * 
      * @param   string $text
-     * @return  
+     * @return  Carbon
      */
     protected function mapTextToDate($text, $format='Y-m-d')
     {
@@ -121,24 +118,25 @@ class ComparisonSummary extends JsonReport
     }
 
     /**
+     * Parse the row, converting the keys from individual HTTP endpoints into a common format
      * 
-     * 
-     * @param   
-     * @return  
+     * @param   object $row
+     * @param   Carbon $reportMonth
+     * @return  SummaryPeriod
      */
     public function parseRow($row, $reportMonth)
     {
         $keys = $this->getHashKeys();
 
-        return [
+        return new SummaryPeriod([
             'entity' => $row->{$keys['entity']},
             'month' => $reportMonth,
             'net_payment' => $row->{$keys['net_payment']},
             'net_payment_delta' => isset($row->{$keys['net_payment_delta']}) ? $row->{$keys['net_payment_delta']} : 0,
-            'prior_period' => $row->{$keys['prior_period']},
+            'prior_year' => $row->{$keys['prior_period']},
             'year_to_date' => $row->{$keys['year_to_date']},
             'year_to_date_delta' => isset($row->{$keys['year_to_date_delta']}) ? $row->{$keys['year_to_date_delta']} : 0
-        ];
+        ]);
     }
 
     /**

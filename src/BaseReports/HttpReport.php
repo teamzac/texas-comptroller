@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamZac\TexasComptroller\Support;
+namespace TeamZac\TexasComptroller\BaseReports;
 
 use GuzzleHttp\Client as Guzzle;
 use TeamZac\TexasComptroller\Exceptions\HttpException;
@@ -56,7 +56,7 @@ class HttpReport
     {
         return new Guzzle([
             'base_uri' => $this->baseUri,
-            'cookies' => true
+            'cookies' => true,
         ]);
     }
 

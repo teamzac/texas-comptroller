@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use TeamZac\TexasComptroller\Support\Currency;
-use TeamZac\TexasComptroller\Support\HttpReport;
+use TeamZac\TexasComptroller\BaseReports\HttpReport;
 
 class HistoricalSummary extends HttpReport
 {
@@ -104,11 +104,11 @@ class HistoricalSummary extends HttpReport
      */
     protected function parseResponse($response)
     {
-        $domParser = str_get_html($response);
-        
-        $tables = $domParser->find('.resultsTable');
-
+        $now = new Carbon;
         $periods = Collection::make([]);
+
+        $domParser = str_get_html($response);
+        $tables = $domParser->find('.resultsTable');
         foreach ($tables as $table) {
             $year = $table->find('thead th span')[0]->innertext;
 
@@ -129,14 +129,14 @@ class HistoricalSummary extends HttpReport
                     continue;
                 }
 
-                $amount = Currency::clean($amountColumn->innertext);
+                $month = $this->mapTextToDate("{$month} {$year}");
 
-                if ( $amount == 0 ) {
+                if ($month->gt($now)) {
                     continue;
                 }
 
                 $periods[] = new ReportPeriod([
-                    'month' => $this->mapTextToDate("{$month} {$year}"),
+                    'month' => $month->format('Y-m-d'),
                     'net_payment' => Currency::clean($amountColumn->innertext)
                 ]);
             }
@@ -153,9 +153,8 @@ class HistoricalSummary extends HttpReport
      * @param   string $text
      * @return  Carbon\Carbon
      */
-    protected function mapTextToDate($text, $format='Y-m-d')
+    protected function mapTextToDate($text)
     {
-        return (new Carbon($text))->format($format);
+        return new Carbon($text);
     }
-    
 }

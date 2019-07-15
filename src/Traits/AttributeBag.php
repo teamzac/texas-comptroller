@@ -34,7 +34,7 @@ trait AttributeBag
     public function setAttributes($attributes = [])
     {
         foreach ($attributes as $key => $value) {
-            Arr::set($this->attributes, $key, trim($value));
+            Arr::set($this->attributes, $key, is_object($value) ? $value : trim($value));
         }
     }
 
@@ -105,6 +105,8 @@ trait AttributeBag
                 return (float) $value;
             case 'string':
                 return (string) $value;
+            case 'date':
+                return $this->asDateTime($value);
             case 'bool':
             case 'boolean':
                 return (bool) $value;

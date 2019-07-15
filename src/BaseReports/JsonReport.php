@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamZac\TexasComptroller\Support;
+namespace TeamZac\TexasComptroller\BaseReports;
 
 class JsonReport extends HttpReport
 {
