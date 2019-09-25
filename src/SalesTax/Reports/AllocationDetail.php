@@ -3,10 +3,11 @@
 namespace TeamZac\TexasComptroller\SalesTax\Reports;
 
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use TeamZac\TexasComptroller\Support\Currency;
+use Illuminate\Support\Str;
+use Symfony\Component\DomCrawler\Crawler;
 use TeamZac\TexasComptroller\BaseReports\HttpReport;
+use TeamZac\TexasComptroller\Support\Currency;
 
 class AllocationDetail extends HttpReport
 {
@@ -92,36 +93,26 @@ class AllocationDetail extends HttpReport
      */
     protected function parseResponse($response)
     {
-        $domParser = str_get_html($response);
+        $crawler = new Crawler($response);
 
-        $this->setAuthorityCode($domParser);
+        $this->setAuthorityCode($crawler);
         
-        $tables = $domParser->find('.resultsTable');
-
         $periods = Collection::make([]);
-        foreach ($tables as $table) {
+        $periods = $crawler->filter('.resultsTable')->each(function(Crawler $node, $i) {
             $attributes = [
-                'month' => $this->mapTextToDate($table->find('thead th span')[0]->innertext),
+                'month' => $this->mapTextToDate($node->filter('th')->getNode(0)->textContent),
             ];
 
-            $rows = $table->find('tbody tr');
-            array_shift($rows);
+            $components = $node->filter('tbody tr')->each(function($row, $i) use (&$attributes) {
+                $componentColumn = $row->children()->getNode(0);
+                $amountColumn = $row->children()->getNode(1);
 
-            foreach ($rows as $row) {
-                $columns = $row->find('td');
+                $attributes[$this->cleanComponent($componentColumn->textContent)] = Currency::clean($amountColumn->textContent);
+            });
+            return new ReportPeriod($attributes);
+        });
 
-                if ( count($columns) < 2 ) {
-                    continue;
-                }
-
-                list($componentColumn, $amountColumn) = $columns;
-                $attributes[$this->cleanComponent($componentColumn->innertext)] = Currency::clean($amountColumn->innertext);
-            }
-
-            $periods[] = new ReportPeriod($attributes);
-        }
-
-        return $periods->sortByDesc(function($period) {
+        return collect($periods)->sortByDesc(function($period) {
             return $period->month;
         });
     }
@@ -134,9 +125,12 @@ class AllocationDetail extends HttpReport
      */
     protected function mapTextToDate($text)
     {
-        $text = trim(str_replace('Allocation Period:&nbsp;', '', $text));
+        $matches = [];
+        if (false === preg_match('([A-Za-z]{3} [0-9]{4})', $text, $matches)) {
+            throw new \Exception('Could not match a date in text: ' . $text);
+        }
 
-        return new Carbon($text);
+        return new Carbon($matches[0]);
     }
 
     /**
@@ -152,18 +146,23 @@ class AllocationDetail extends HttpReport
     /**
      * Fetch and set the authority code
      * 
-     * @param   $domParser
+     * @param   $crawler
      * @return  void
      */
-    public function setAuthorityCode($domParser)
+    public function setAuthorityCode($crawler)
     {
-        $div = $domParser->find('.resultspageCriteria');
+        try {
+            $text = $crawler->filter('.resultspageCriteria')->getNode(0)->textContent;
+        } catch (\Exception $e) {
+            return;
+        }
 
-        if ( count($div) == 0 ) return;
+        $matches = [];
+        preg_match('/Authority Code: ([0-9]*)/', $text, $matches);
 
-        list($name, $code) = explode('<br />', trim($div[0]->innertext));
-        list ($text, $code) = explode(':', trim($code));
-        $this->authorityCode = trim($code);
+        if (count($matches) == 2) {
+            $this->authorityCode = trim($matches[1]);
+        }
     }
 
     /**

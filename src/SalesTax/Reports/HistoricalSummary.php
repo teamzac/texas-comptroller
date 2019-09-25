@@ -3,10 +3,11 @@
 namespace TeamZac\TexasComptroller\SalesTax\Reports;
 
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use TeamZac\TexasComptroller\Support\Currency;
+use Illuminate\Support\Str;
+use Symfony\Component\DomCrawler\Crawler;
 use TeamZac\TexasComptroller\BaseReports\HttpReport;
+use TeamZac\TexasComptroller\Support\Currency;
 
 class HistoricalSummary extends HttpReport
 {
@@ -105,44 +106,35 @@ class HistoricalSummary extends HttpReport
     protected function parseResponse($response)
     {
         $now = new Carbon;
-        $periods = Collection::make([]);
+        $crawler = new Crawler($response);
 
-        $domParser = str_get_html($response);
-        $tables = $domParser->find('.resultsTable');
-        foreach ($tables as $table) {
-            $year = $table->find('thead th span')[0]->innertext;
+        $periods = $crawler->filter('.resultsTable')->each(function(Crawler $table, $i) use ($now) {
+            $year = $table->filter('thead th span')->getNode(0)->textContent;
 
-            $rows = $table->find('tbody tr');
-            array_shift($rows);
+            $rows = $table->filter('tbody tr')->each(function(Crawler $row, $i) use ($year, $now) {
+                $month = trim($row->children()->getNode(0)->textContent);
+                $amount = trim($row->children()->getNode(1)->textContent);
 
-            foreach ($rows as $row) {
-                $columns = $row->find('td');
-
-                if ( count($columns) < 2 ) {
-                    continue;
+                if (strlen($month) === 0 || Str::contains($month, 'TOTAL') || Str::contains($month, '&nbsp') || Str::is($month, " ")) {
+                    return;
                 }
-
-                list($monthColumn, $amountColumn) = $columns;
-                $month = trim($monthColumn->innertext);
-
-                if (strlen($month) == 0 || Str::contains($month, 'TOTAL') || Str::contains($month, '&nbsp')) {
-                    continue;
-                }
-
                 $month = $this->mapTextToDate("{$month} {$year}");
 
-                if ($month->gt($now)) {
-                    continue;
+                if ($month->gt($now) || $amount === '.') {
+                    return;
                 }
 
-                $periods[] = new ReportPeriod([
+                return new ReportPeriod([
                     'month' => $month->format('Y-m-d'),
-                    'net_payment' => Currency::clean($amountColumn->innertext)
+                    'net_payment' => Currency::clean($amount)
                 ]);
-            }
-        }
+            });
+            return collect($rows)->filter(function($row) {
+                return $row instanceof ReportPeriod;
+            });
+        });
 
-        return $periods->sortByDesc(function($period) {
+        return collect($periods)->flatten()->sortByDesc(function($period) {
             return $period->month;
         })->values();
     }

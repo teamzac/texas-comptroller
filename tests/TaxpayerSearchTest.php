@@ -5,7 +5,6 @@ namespace TeamZac\TexasComptroller\Tests;
 use PHPUnit\Framework\TestCase;
 use TeamZac\TexasComptroller\SalesTax\Search\TaxpayerSearch;
 
-
 class TaxpayerSearchTest extends TestCase
 {
     /** @test */

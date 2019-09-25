@@ -2,6 +2,7 @@
 
 namespace TeamZac\TexasComptroller\SalesTax\Search;
 
+use Symfony\Component\DomCrawler\Crawler;
 use TeamZac\TexasComptroller\BaseReports\HttpReport;
 use TeamZac\TexasComptroller\SalesTax\Search\Taxpayer;
 
@@ -11,10 +12,10 @@ class TaxpayerSearch extends HttpReport
     protected $baseUri = 'https://mycpa.cpa.state.tx.us/staxpayersearch/';
 
     /**
+     * Search for the given taxpayer id
      * 
-     * 
-     * @param   
-     * @return  
+     * @param   string $taxpayerId
+     * @return  Taxpayer
      */
     public function search($taxpayerId)
     {
@@ -28,20 +29,22 @@ class TaxpayerSearch extends HttpReport
     }
 
     /**
+     * Parse the HTML response
      * 
-     * 
-     * @param   
-     * @return  
+     * @param   string $response
+     * @return  Taxpayer
      */
     public function parseResponse($response)
     {
-        $dom = str_get_html($response);
+        $crawler = new Crawler($response);
+        
+        list ($taxpayer, $locations) = $crawler->filter('.panel-body')->each(function(Crawler $node, $i) {
+            return $i == 0 ? 
+                $this->findTaxpayer($node) :
+                $this->findLocations($node);
+        });
 
-        $attributes = $this->findTaxpayer($dom->find('.panel-body', 0));
-
-        $locations = $this->findLocations($dom->find('.panel-body', 1));
-
-        return (new Taxpayer($attributes))->setLocations($locations);;
+        return (new Taxpayer($taxpayer))->setLocations($locations);;
     }
 
     /**
@@ -50,16 +53,17 @@ class TaxpayerSearch extends HttpReport
      * @param   
      * @return  
      */
-    public function findTaxpayer($dom)
+    public function findTaxpayer($crawler)
     {
-        $attributes = [
-            'id' => trim($dom->find('.row .col-sm-9', 0)->innertext),
-            'name' => trim($dom->find('.row .col-sm-9', 1)->innertext),
-            'address' => $this->parseTaxpayerAddress($dom->find('.row .col-sm-9', 2)->innertext, $dom->find('.row .col-sm-9', 3)->innertext),
-            'status' => trim($dom->find('.row .col-sm-9 span', 0)->innertext)
+        return [
+            'id' => trim($crawler->filter('.panel-body')->children('.row .col-sm-9')->getNode(0)->textContent),
+            'name' => trim($crawler->filter('.panel-body')->children('.row .col-sm-9')->getNode(1)->textContent),
+            'address' => $this->parseTaxpayerAddress(
+                trim($crawler->filter('.panel-body')->children('.row .col-sm-9')->getNode(2)->textContent),
+                trim($crawler->filter('.panel-body')->children('.row .col-sm-9')->getNode(3)->textContent)
+            ),
+            'status' => trim($crawler->filter('.panel-body')->children('.row .col-sm-9 span.label')->getNode(0)->textContent),
         ];
-
-        return $attributes;
     }
 
     /**
@@ -87,33 +91,23 @@ class TaxpayerSearch extends HttpReport
      * @param   
      * @return  
      */
-    public function findLocations($dom)
+    public function findLocations($crawler)
     {
-        $locations = [];
-
-        foreach ($dom->find('table', 0)->children as $tableSection)
-        {
-            // simple dom won't skip past the thead, so we will do it manually
-            if ($tableSection->tag == 'thead') {
-                continue;
-            }
-
-            foreach ($tableSection->children as $row) {
-                // dd($row->innertext);
-                // dd($row->find('td', 1)->innertext);
-                $locations[] = [
-                    'name' => trim($row->find('td', 0)->innertext),
-                    'status' => trim($row->find('td', 1)->find('span', 0)->innertext),
-                    'address' => $this->parseTaxpayerAddress(
-                        substr($addressField = $row->find('td', 2)->innertext, 0, strpos($addressField, '<span')),
-                        $row->find('td', 3)->innertext
-                    ),
-                    'number' => trim($row->find('td', 4)->innertext),
-                    'open_at' => trim($row->find('td', 5)->innertext),
-                    'closed_at' => trim($row->find('td', 6)->innertext),
-                ];
-            }
-        }
+        $locations = $crawler->filter('tbody tr')->each(function($node) {
+            return [
+                'name' => trim($node->children()->eq(0)->getNode(0)->textContent),
+                'status' => trim($node->children()->eq(1)->getNode(0)->textContent),
+                'address' => $this->parseTaxpayerAddress(
+                    tap($node->children()->eq(2)->getNode(0), function($n) { 
+                        $n->removeChild($n->lastChild);
+                    })->textContent,
+                    $node->children()->eq(3)->getNode(0)->textContent
+                ),
+                'number' => trim($node->children()->eq(4)->getNode(0)->textContent),
+                'open_at' => trim($node->children()->eq(5)->getNode(0)->textContent),
+                'closed_at' => trim($node->children()->eq(6)->getNode(0)->textContent),
+            ];
+        });
         return collect($locations);
     }
 }

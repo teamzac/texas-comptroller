@@ -19,7 +19,8 @@
         "php": "^7.1",
         "emanueleminotto/simple-html-dom": "^1.5",
         "guzzlehttp/guzzle": "~6.0",
-        "illuminate/support": "5.8.*|^6.0"
+        "illuminate/support": "5.8.*|^6.0",
+        "symfony/dom-crawler": "^4.3"
     },
     "require-dev": {
         "orchestra/testbench": "3.8.*|3.9.*",
