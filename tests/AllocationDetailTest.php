@@ -19,11 +19,12 @@ class AllocationDetailTest extends TestCase
         tap($report->first(), function($period) {
             $this->assertInstanceOf(ReportPeriod::class, $period);
             $this->assertInstanceof(Carbon::class, $period->month);
-            $this->assertTrue(is_numeric($period->total_collections));
+            $this->assertTrue(is_numeric($period->total_period_collections));
             $this->assertTrue(is_numeric($period->prior_period_collections));
             $this->assertTrue(is_numeric($period->current_period_collections));
             $this->assertTrue(is_numeric($period->future_period_collections));
             $this->assertTrue(is_numeric($period->audit_collections));
+            $this->assertTrue(is_numeric($period->single_local_rate_collections));
             $this->assertTrue(is_numeric($period->unidentified));
             $this->assertTrue(is_numeric($period->service_fee));
             $this->assertTrue(is_numeric($period->current_retained));
@@ -42,7 +43,7 @@ class AllocationDetailTest extends TestCase
         tap($report->first(), function($period) {
             $this->assertInstanceOf(ReportPeriod::class, $period);
             $this->assertInstanceof(Carbon::class, $period->month);
-            $this->assertTrue(is_numeric($period->total_collections));
+            $this->assertTrue(is_numeric($period->total_period_collections));
             $this->assertTrue(is_numeric($period->prior_period_collections));
             $this->assertTrue(is_numeric($period->current_period_collections));
             $this->assertTrue(is_numeric($period->future_period_collections));
@@ -65,7 +66,7 @@ class AllocationDetailTest extends TestCase
         tap($report->first(), function($period) {
             $this->assertInstanceOf(ReportPeriod::class, $period);
             $this->assertInstanceof(Carbon::class, $period->month);
-            $this->assertTrue(is_numeric($period->total_collections));
+            $this->assertTrue(is_numeric($period->total_period_collections));
             $this->assertTrue(is_numeric($period->prior_period_collections));
             $this->assertTrue(is_numeric($period->current_period_collections));
             $this->assertTrue(is_numeric($period->future_period_collections));
@@ -88,7 +89,7 @@ class AllocationDetailTest extends TestCase
         tap($report->first(), function($period) {
             $this->assertInstanceOf(ReportPeriod::class, $period);
             $this->assertInstanceof(Carbon::class, $period->month);
-            $this->assertTrue(is_numeric($period->total_collections));
+            $this->assertTrue(is_numeric($period->total_period_collections));
             $this->assertTrue(is_numeric($period->prior_period_collections));
             $this->assertTrue(is_numeric($period->current_period_collections));
             $this->assertTrue(is_numeric($period->future_period_collections));
