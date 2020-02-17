@@ -64,6 +64,16 @@ trait AttributeBag
     }
 
     /**
+     * Get the raw attributes
+     * 
+     * @return  array
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
+    }
+
+    /**
      * Get the array of casts
      * 
      * @param   string|null $key
