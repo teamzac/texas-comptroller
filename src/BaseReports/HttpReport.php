@@ -17,6 +17,9 @@ class HttpReport
     /** @var string */
     protected $endpoint;
 
+    /** @var array */
+    protected $curlOptions = [];
+
     /**
      * Convenience constructor
      * 
@@ -28,7 +31,7 @@ class HttpReport
     }
 
     /**
-     * Return the endpoing
+     * Return the endpoint
      * 
      * @return  string
      */
@@ -61,6 +64,18 @@ class HttpReport
     }
 
     /**
+     * Provide the ability to override cURL options on the Guzzle client
+     * 
+     * @param array $curlOptions
+     * @return self
+     */
+    public function setCurlOptions($curlOptions)
+    {
+        $this->curlOptions = $curlOptions;
+        return $this;
+    }
+
+    /**
      * Fetch the report from the Comptroller's web site using the parameters that have been provided
      * 
      * @return  mixed
@@ -87,7 +102,8 @@ class HttpReport
     {
         try {
             $response = $this->http()->post($this->endpoint, [
-                'form_params' => $this->params
+                'form_params' => $this->params,
+                'curl' => $this->curlOptions,
             ])->getBody();
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             throw HttpException::fromClientException($e);

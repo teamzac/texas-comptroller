@@ -12,7 +12,9 @@ class AllocationDetailTest extends TestCase
     /** @test */
     public function allocation_detail_report_test()
     {
-        $report = AllocationDetail::make()->forCity('Hudson Oaks')->get();
+        $report = AllocationDetail::make()
+            ->forCity('Hudson Oaks')
+            ->get();
         
         // this report should always have 24 months
         $this->assertCount(24, $report);
@@ -36,7 +38,9 @@ class AllocationDetailTest extends TestCase
     /** @test */
     public function allocation_detail_report_counties_test()
     {
-        $report = AllocationDetail::make()->forCounty('Parker')->get();
+        $report = AllocationDetail::make()
+            ->forCounty('Parker')
+            ->get();
         
         // this report should always have 24 months
         $this->assertCount(24, $report);
@@ -59,7 +63,9 @@ class AllocationDetailTest extends TestCase
     /** @test */
     public function allocation_detail_report_transit_authorities_test()
     {
-        $report = AllocationDetail::make()->forTransitAuthority('Austin MTA')->get();
+        $report = AllocationDetail::make()
+            ->forTransitAuthority('Austin MTA')
+            ->get();
         
         // this report should always have 24 months
         $this->assertCount(24, $report);
@@ -82,7 +88,9 @@ class AllocationDetailTest extends TestCase
     /** @test */
     public function allocation_detail_report_special_district_test()
     {
-        $report = AllocationDetail::make()->forSpecialDistrict('Airline Improvement Dist')->get();
+        $report = AllocationDetail::make()
+            ->forSpecialDistrict('Airline Improvement Dist')
+            ->get();
         
         // this report should always have 24 months
         $this->assertCount(24, $report);
